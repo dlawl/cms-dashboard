@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { User, UserStatus } from "../services/userService";
 import { StatusBadge } from "./StatusBadge";
 
@@ -9,7 +10,13 @@ interface UserCardProps {
 }
 
 export const UserCard: React.FC<UserCardProps> = ({ user, onApprove, onReject }) => (
-  <div className="bg-white rounded-lg shadow p-5 flex flex-col gap-2 border hover:shadow-md transition">
+  <motion.div
+    className="bg-white rounded-lg shadow p-5 flex flex-col gap-2 border hover:shadow-md transition"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+  >
     <div className="flex items-center justify-between">
       <div>
         <div className="font-semibold text-lg">{user.name}</div>
@@ -33,5 +40,5 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onApprove, onReject })
         Reject
       </button>
     </div>
-  </div>
+  </motion.div>
 );

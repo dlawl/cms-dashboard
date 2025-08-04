@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { getUsers, updateUserStatus, User, UserStatus } from "../services/userService";
 import { UserCard } from "../components/UserCard";
 import { FilterBar } from "../components/FilterBar";
-
+import { toast } from "react-hot-toast";
 export default function DashboardPage() {
   const { authenticated, logout } = useAuth(true);
   const [users, setUsers] = useState<User[]>([]);
@@ -16,11 +16,13 @@ export default function DashboardPage() {
   const handleApprove = (id: string) => {
     const updated = updateUserStatus(id, "approved");
     setUsers([...updated]);
+    toast.success("승인 완료!");
   };
 
   const handleReject = (id: string) => {
     const updated = updateUserStatus(id, "rejected");
     setUsers([...updated]);
+    toast.error("반려 처리됨");
   };
 
   const filteredUsers =
