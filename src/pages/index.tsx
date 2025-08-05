@@ -1,7 +1,28 @@
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "../hooks/useAuth";
+import DashboardPage from "./dashboard";
+
 export default function Home() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-100 text-blue-900">
-      <h1 className="text-3xl font-bold">Tailwind 적용 완료!</h1>
-    </div>
-  );
+  const { authenticated } = useAuth();
+  const router = useRouter();
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setChecked(true);
+    if (!authenticated) {
+      router.replace("/login");
+    }
+  }, [authenticated, router]);
+
+  // 인증 체크 중엔 아무것도 안 보여줌
+  if (!checked) return null;
+
+  // 인증 O: 대시보드 바로 렌더 (주소창은 /)
+  if (authenticated) {
+    return <DashboardPage />;
+  }
+
+  // 인증 X: /login으로 이동 중이므로 아무것도 렌더링하지 않음
+  return null;
 }

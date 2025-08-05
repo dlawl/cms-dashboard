@@ -14,19 +14,18 @@ const options: { label: string; value: UserStatus | "all" }[] = [
 ];
 
 export const FilterBar: React.FC<FilterBarProps> = ({ filter, setFilter }) => (
-  <div className="flex gap-2 mb-6">
-    {options.map(opt => (
-      <button
-        key={opt.value}
-        className={`px-4 py-1 rounded-full border ${
-          filter === opt.value
-            ? "bg-blue-600 text-white border-blue-600"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"
-        } transition`}
-        onClick={() => setFilter(opt.value)}
-      >
-        {opt.label}
-      </button>
-    ))}
+  <div className="flex gap-3 mb-8 justify-center">
+    {options.map(opt => {
+      const selected = filter === opt.value;
+      return (
+        <button
+          key={opt.value}
+          className={`px-4 py-1 rounded-full font-semibold transition shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer ${selected ? "bg-gradient-to-r from-primary to-accent text-gray shadow-md ring-2 ring-primary/30" : "bg-white text-foreground border border-gray-200 hover:bg-gray-50"}`}
+          onClick={() => setFilter(opt.value)}
+        >
+          {opt.label}
+        </button>
+      );
+    })}
   </div>
 );
