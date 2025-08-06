@@ -11,6 +11,10 @@
 
 - [배포 URL](https://your-vercel-url.vercel.app)
 
+### 🧪 테스트 계정
+- ID: admin@naver.com
+- PW: 1234
+
 ## 🛠️ 기술 스택
 
 | 분야          | 기술/라이브러리          | 도입 이유                                  |
@@ -29,11 +33,15 @@
 ## 🚦 서버 상태 관리 & Optimistic UI
 
 - 사용자 목록과 상태 변경(승인/반려/대기)은 React Query를 사용해 관리합니다.
-- [src/pages/dashboard.tsx](cci:7://file:///c:/Users/master/Downloads/newpro-real/src/pages/dashboard.tsx:0:0-0:0)에서 `useQuery`로 사용자 목록을 가져오고, `useMutation`으로 사용자 상태를 변경합니다.
+- [src/pages/dashboard.tsx](./src/pages/dashboard.tsx) — 사용자 목록, 상태변경, optimistic UI, mutation 중복 방지 핵심 로직
+- [src/services/userService.ts](./src/services/userService.ts) — mock 데이터 관리
+
+- [dashboard.tsx](./src/pages/dashboard.tsx)에서 `useQuery`로 사용자 목록을 가져오고, `useMutation`으로 사용자 상태를 변경합니다.
 - 상태 변경 시, onMutate에서 UI를 먼저 낙관적으로(optimistic) 변경하고, onError에서 실패 시 이전 상태로 롤백합니다.
 - 동일 유저에 대해 상태 변경 요청이 중복 발생하는 것을 방지하기 위해, 각 유저별로 actionLoading 상태를 관리합니다. mutation이 진행 중인 유저에 대해서는 추가 요청을 무시하여 race condition을 방지합니다.
 - 쿼리키에 필터(상태)를 포함해, 필터 전환 시마다 해당 조건의 데이터만 새로 불러옵니다.
 - 승인/반려/대기 버튼은 mutation 중이거나 이미 해당 상태일 때 비활성화되며, Tailwind CSS의 `disabled:opacity-40` 클래스를 사용해 시각적으로도 구분됩니다.
+
 
 ## 📁 폴더 구조
 
@@ -94,5 +102,10 @@ src/ ├── pages/ # login.tsx, dashboard.tsx ├── components/ # UI 단�
 | 원인   | mutation이 끝나기 전에 동일 유저에 대해 추가 요청이 발생할 수 있음 |
 | 해결   | 각 유저별로 actionLoading 상태를 두고, mutation 중에는 추가 요청을 무시하도록 로직 보강. React Query의 onMutate, onError를 활용해 optimistic UI와 실패 시 롤백을 구현 |
 | 결과   | 동일 유저에 대한 중복 요청이 차단되어 race condition 없이 항상 일관된 상태가 유지됨. 실패 시에도 UI가 원래대로 복구됨 |
+
+## 성능 및 UX 측정
+
+
+
 
 
