@@ -53,7 +53,7 @@ src/ ├── pages/ # login.tsx, dashboard.tsx ├── components/ # UI 단�
 | D3 | /dashboard 구성 + mock 유저 데이터 연동 | React Query + Suspense |
 | D4 | 필터 기능 + 상태 전환 로직 구현 | Zustand 전역 상태 연동 |
 | D5 | UX 디테일 작업 (Toast, 애니메이션) | react-hot-toast, GSAP 적용 |
-| D6 | 에러처리, 다크모드, 반응형 대응 | 로딩/에러 UI, media query |
+| D6 | 에러처리, 반응형 대응 | 로딩/에러 UI, media query |
 | D7 | README 작성 + PPT 이미지 캡처 | 포트폴리오 문서화, 배포 완료 |
 
 ## 📝 기획서 vs 실제 구현 비교
