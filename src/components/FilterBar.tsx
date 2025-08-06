@@ -13,7 +13,7 @@ const options: { label: string; value: UserStatus | "all" }[] = [
   { label: "Pending", value: "pending" },
 ];
 
-export const FilterBar: React.FC<FilterBarProps> = ({ filter, setFilter }) => (
+const FilterBarComponent: React.FC<FilterBarProps> = ({ filter, setFilter }) => (
   <div className="flex gap-1 sm:gap-3 mb-8 justify-center px-2 sm:px-0">
     {options.map(opt => {
       const selected = filter === opt.value;
@@ -21,8 +21,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filter, setFilter }) => (
         <button
           key={opt.value}
           className={`px-2 sm:px-4 py-1 rounded-full font-semibold transition shadow-sm text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer ${selected
-  ? "bg-gradient-to-r from-primary to-accent text-gray shadow-md ring-2 ring-primary/30 "
-  : "bg-white text-foreground border border-gray-200 hover:bg-gray-50 "}`}
+            ? "bg-gradient-to-r from-primary to-accent text-gray shadow-md ring-2 ring-primary/30 "
+            : "bg-white text-foreground border border-gray-200 hover:bg-gray-50 "}`}
           onClick={() => setFilter(opt.value)}
         >
           {opt.label}
@@ -31,3 +31,5 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filter, setFilter }) => (
     })}
   </div>
 );
+
+export const FilterBar = React.memo(FilterBarComponent);

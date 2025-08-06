@@ -50,31 +50,39 @@ graph LR
 
 ### 3.2 사용자 목록/상태 전환
 
-- React Query로 mock API에서 유저 데이터 fetch
-- UserCard 컴포넌트: 승인/반려 버튼, 상태 뱃지, 토스트 알림
-- 상태 전환 시 optimistic UI 적용
+- React Query로 mock API(localStorage)에서 유저 데이터 fetch (`useQuery`)
+- UserCard 컴포넌트: 승인/반려/대기 버튼, 상태 뱃지, 토스트 알림
+- 상태 전환 시 `useMutation` + onMutate로 optimistic UI(즉시 반영), onError로 실패 시 롤백
+- 각 유저별 actionLoading 상태로 mutation 중 중복 요청 차단(race condition 방지)
+- mutation 중 버튼 비활성화 및 Tailwind CSS(`disabled:opacity-40`)로 시각적 피드백
 
 ### 3.3 필터/검색
 
 - 전체/승인/반려 필터 (URL query param 연동)
 - Zustand로 필터 상태 관리
+- React Query 쿼리키에 filter(상태) 포함 → 필터 전환 시 정확한 데이터 fetch
 - (보너스) 검색/정렬 기능 확장 가능
 
 ### 3.4 에러/예외 처리
 
 - react-error-boundary로 에러 UI 처리
 - 404/403 등 예외 페이지
+- React Query의 isError, error 객체로 fetch/mutation 에러 UI 처리
 
 ### 3.5 UX/디자인
 
 - GSAP/framer-motion으로 애니메이션
 - 반응형, 접근성 고려
 - shadcn/ui로 일관성 유지
+- react-hot-toast로 상태 변경 성공/실패/롤백 등 사용자 피드백 제공
+- 로딩/에러/empty state 등 UI 세분화
 
-## 4. 폴더 구조
+---
 
-src/
-├── pages/
+#### 트러블슈팅 및 개선 내역
+
+- 쿼리키에 filter를 포함해 필터 변경 시 캐시 데이터가 남는 문제를 해결함.
+- mutation 중 중복 요청(race condition) 방지 및 optimistic update/rollback 패턴을 실제 코드에 반영함.
 ├── components/
 ├── features/
 ├── services/
@@ -100,6 +108,11 @@ src/
 ---
 
 ## 📌 부록: 실전 코드/지표/테스트 예시
+
+
+- [src/pages/dashboard.tsx](./src/pages/dashboard.tsx) — 사용자 목록, 상태변경, optimistic UI, mutation 중복 방지 핵심 로직
+- [src/services/userService.ts](./src/services/userService.ts) — mock 데이터 관리
+
 
 ### 1. 핵심 코드 예시
 

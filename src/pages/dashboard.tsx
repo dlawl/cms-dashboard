@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
+import Image from "next/image";
+import Head from "next/head";
+import { FixedSizeList as List } from "react-window";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 import { getUsers, updateUserStatus, User, UserStatus } from "../services/userService";
@@ -87,10 +90,15 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground ">
-      <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
-        <img src="/logo.png" alt="서비스 로고" className="h-16 w-auto min-w-[64px] max-h-24 cursor-pointer" />
-        <button
+    <>
+      <Head>
+        <title>대시보드 | Admin Dashboard</title>
+        <meta name="description" content="관리자 대시보드 - 사용자 목록 및 상태 관리" />
+      </Head>
+      <div className="min-h-screen bg-background text-foreground ">
+        <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
+          <Image src="/logo.png" alt="서비스 로고" width={64} height={64} className="h-16 w-auto min-w-[64px] max-h-24 cursor-pointer" priority />
+          <button
           onClick={logout}
           className="flex items-center gap-2 bg-[#7F8CAA] text-white py-2 px-4 rounded-lg shadow hover:bg-[#333446] transition font-semibold text-base border border-[#B8CFCE] cursor-pointer "
         >
@@ -119,8 +127,8 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-6 sm:grid-cols-2 mt-6">
-              {users.map((user: User) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+              {users.map(user => (
                 <UserCard
                   key={user.id}
                   user={user}
@@ -146,5 +154,6 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+    </>
   );
 }

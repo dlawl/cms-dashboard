@@ -11,7 +11,7 @@ interface UserCardProps {
   actionLoading?: boolean;
 }
 
-export const UserCard: React.FC<UserCardProps> = ({ user, onApprove, onReject, onPending, actionLoading }) => (
+const UserCardComponent: React.FC<UserCardProps> = ({ user, onApprove, onReject, onPending, actionLoading }) => (
   <motion.div
     className="bg-gradient-to-br from-white via-background to-gray-100 border border-gray-200 rounded-xl shadow-md p-6 flex flex-col gap-3 hover:shadow-xl transition "
     initial={{ opacity: 0, y: 20 }}
@@ -51,3 +51,5 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onApprove, onReject, o
     </div>
   </motion.div>
 );
+
+export const UserCard = React.memo(UserCardComponent);

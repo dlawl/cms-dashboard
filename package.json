@@ -11,10 +11,11 @@
   "dependencies": {
     "@tanstack/react-query": "^5.84.1",
     "framer-motion": "^12.23.12",
-    "next": "15.4.5",
+    "next": "^15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hot-toast": "^2.5.2",
+    "react-window": "^1.8.11",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
@@ -23,6 +24,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-window": "^1.8.8",
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",

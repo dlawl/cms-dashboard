@@ -3,6 +3,8 @@ import { useRouter } from "next/router";
 import { useAuth } from "../hooks/useAuth";
 import DashboardPage from "./dashboard";
 
+import Head from "next/head";
+
 export default function Home() {
   const { authenticated } = useAuth();
   const router = useRouter();

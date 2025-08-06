@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Image from "next/image";
+import Head from "next/head";
 import { useAuth } from "../hooks/useAuth";
 
 export default function LoginPage() {
@@ -19,10 +21,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5F6FA] text-[#333446]">
+    <>
+      <Head>
+        <title>로그인 | Admin Dashboard</title>
+        <meta name="description" content="관리자 로그인 페이지" />
+      </Head>
+      <div className="min-h-screen flex items-center justify-center bg-[#F5F6FA] text-[#333446]">
+
       <div className="w-full max-w-md mx-auto px-4 sm:px-0">
         <div className="bg-white rounded-xl shadow-xl p-4 sm:p-8 flex flex-col items-center">
-          <img src="/logo.png" alt="서비스 로고" className="h-20 w-auto mx-auto mb-4" />
+          <Image src="/logo.png" alt="서비스 로고" width={80} height={80} className="h-20 w-auto mx-auto mb-4" priority />
           <div className="text-2xl font-bold mb-2">Admin Dashboard</div>
           <p className="text-sm text-[#7F8CAA] mb-6">관리자 전용 로그인</p>
           <form
@@ -88,5 +96,6 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
