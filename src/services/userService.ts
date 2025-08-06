@@ -26,8 +26,10 @@ function saveUsersToStorage(users: User[]) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-export function getUsers(): User[] {
-  return getUsersFromStorage();
+export function getUsers(filter: UserStatus | "all" = "all"): User[] {
+  const users = getUsersFromStorage();
+  if (filter === "all") return users;
+  return users.filter(u => u.status === filter);
 }
 
 export function updateUserStatus(id: string, status: UserStatus) {

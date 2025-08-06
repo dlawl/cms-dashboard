@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 import { getUsers, updateUserStatus, User, UserStatus } from "../services/userService";
 import { UserCard } from "../components/UserCard";
@@ -6,56 +7,84 @@ import { FilterBar } from "../components/FilterBar";
 import { toast } from "react-hot-toast";
 export default function DashboardPage() {
   const { authenticated, logout } = useAuth(true);
-  const [users, setUsers] = useState<User[]>([]);
   const [filter, setFilter] = useState<UserStatus | "all">("all");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<{ [id: string]: boolean }>({});
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    setTimeout(() => {
-      try {
-        const data = getUsers();
-        setUsers(data);
-        setLoading(false);
-      } catch (e) {
-        setError("유저 데이터를 불러오는 중 오류가 발생했습니다.");
-        setLoading(false);
+  const {
+    data,
+    isLoading: loading,
+    isError,
+    error
+  } = useQuery<User[], Error>({
+    queryKey: ["users", filter],
+    queryFn: () => getUsers(filter),
+    staleTime: 1000 * 60
+  });
+  const users = data ?? [];
+
+  // optimistic mutation
+  type MutateVars = { id: string; status: UserStatus };
+  type MutateContext = { previousUsers?: User[] };
+
+  const mutation = useMutation<User[], Error, MutateVars, MutateContext>({
+    mutationFn: async ({ id, status }) => {
+      // 실제 환경에서는 서버 요청 실패를 시뮬레이션 할 수 있음
+      return updateUserStatus(id, status);
+    },
+    onMutate: async ({ id, status }) => {
+      setActionLoading(prev => ({ ...prev, [id]: true }));
+      await queryClient.cancelQueries({ queryKey: ["users"] });
+      const previousUsers = queryClient.getQueryData<User[]>(["users", filter]);
+      // 낙관적으로 UI 업데이트
+      if (previousUsers) {
+        queryClient.setQueryData<User[]>(["users", filter],
+          previousUsers.map(u => u.id === id ? { ...u, status } : u)
+        );
       }
-    }, 800); // simulate loading
-  }, []);
+      return { previousUsers };
+    },
+    onError: (err, variables, context) => {
+      // 실패 시 롤백
+      if (context?.previousUsers) {
+        queryClient.setQueryData(["users", filter], context.previousUsers);
+      }
+      toast.error("상태 변경 실패! (롤백됨)");
+    },
+    onSettled: () => {
+      // 항상 최신 데이터로 동기화
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    onSuccess: (_, { status }) => {
+      if (status === "approved") toast.success("승인 완료!");
+      else if (status === "rejected") toast.error("반려 처리됨");
+      else toast("대기 상태로 변경됨");
+    }
+  });
 
-  const handleApprove = async (id: string) => {
-    setActionLoading(prev => ({ ...prev, [id]: true }));
-    await new Promise(res => setTimeout(res, 700));
-    const updated = updateUserStatus(id, "approved");
-    setUsers([...updated]);
-    setActionLoading(prev => ({ ...prev, [id]: false }));
-    toast.success("승인 완료!");
+  const handleApprove = (id: string) => {
+    if (actionLoading[id]) return; // 중복 요청 방지
+    mutation.mutate({ id, status: "approved" }, {
+      onSettled: () => setActionLoading(prev => ({ ...prev, [id]: false }))
+    });
   };
 
-  const handleReject = async (id: string) => {
-    setActionLoading(prev => ({ ...prev, [id]: true }));
-    await new Promise(res => setTimeout(res, 700));
-    const updated = updateUserStatus(id, "rejected");
-    setUsers([...updated]);
-    setActionLoading(prev => ({ ...prev, [id]: false }));
-    toast.error("반려 처리됨");
+  const handleReject = (id: string) => {
+    if (actionLoading[id]) return; // 중복 요청 방지
+    mutation.mutate({ id, status: "rejected" }, {
+      onSettled: () => setActionLoading(prev => ({ ...prev, [id]: false }))
+    });
   };
 
-  const handlePending = async (id: string) => {
-    setActionLoading(prev => ({ ...prev, [id]: true }));
-    await new Promise(res => setTimeout(res, 700));
-    const updated = updateUserStatus(id, "pending");
-    setUsers([...updated]);
-    setActionLoading(prev => ({ ...prev, [id]: false }));
-    toast("대기 상태로 변경됨");
+  const handlePending = (id: string) => {
+    if (actionLoading[id]) return; // 중복 요청 방지
+    mutation.mutate({ id, status: "pending" }, {
+      onSettled: () => setActionLoading(prev => ({ ...prev, [id]: false }))
+    });
   };
 
-  const filteredUsers =
-    filter === "all" ? users : users.filter(u => u.status === filter);
+
+
 
   return (
     <div className="min-h-screen bg-background text-foreground ">
@@ -81,17 +110,17 @@ export default function DashboardPage() {
             </svg>
             <div className="text-secondary">데이터를 불러오는 중...</div>
           </div>
-        ) : error ? (
+        ) : isError ? (
           <div className="flex flex-col items-center justify-center min-h-[200px]">
             <svg className="h-10 w-10 text-red-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <div className="text-red-500 font-semibold">{error}</div>
+            <div className="text-red-500 font-semibold">{error instanceof Error ? error.message : String(error)}</div>
           </div>
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2 mt-6">
-              {filteredUsers.map(user => (
+              {users.map((user: User) => (
                 <UserCard
                   key={user.id}
                   user={user}
@@ -102,7 +131,7 @@ export default function DashboardPage() {
                 />
               ))}
             </div>
-            {filteredUsers.length === 0 && (
+            {users.length === 0 && (
               <div className="flex flex-col items-center justify-center mt-16 gap-3">
                 <svg className="h-14 w-14 text-gray-300 mb-2" fill="none" viewBox="0 0 48 48" stroke="currentColor">
                   <circle cx="24" cy="24" r="22" strokeWidth="2" className="text-gray-200" fill="white" />
