@@ -8,26 +8,49 @@ export default function DashboardPage() {
   const { authenticated, logout } = useAuth(true);
   const [users, setUsers] = useState<User[]>([]);
   const [filter, setFilter] = useState<UserStatus | "all">("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<{ [id: string]: boolean }>({});
 
   useEffect(() => {
-    setUsers(getUsers());
+    setLoading(true);
+    setError(null);
+    setTimeout(() => {
+      try {
+        const data = getUsers();
+        setUsers(data);
+        setLoading(false);
+      } catch (e) {
+        setError("유저 데이터를 불러오는 중 오류가 발생했습니다.");
+        setLoading(false);
+      }
+    }, 800); // simulate loading
   }, []);
 
-  const handleApprove = (id: string) => {
+  const handleApprove = async (id: string) => {
+    setActionLoading(prev => ({ ...prev, [id]: true }));
+    await new Promise(res => setTimeout(res, 700));
     const updated = updateUserStatus(id, "approved");
     setUsers([...updated]);
+    setActionLoading(prev => ({ ...prev, [id]: false }));
     toast.success("승인 완료!");
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = async (id: string) => {
+    setActionLoading(prev => ({ ...prev, [id]: true }));
+    await new Promise(res => setTimeout(res, 700));
     const updated = updateUserStatus(id, "rejected");
     setUsers([...updated]);
+    setActionLoading(prev => ({ ...prev, [id]: false }));
     toast.error("반려 처리됨");
   };
 
-  const handlePending = (id: string) => {
+  const handlePending = async (id: string) => {
+    setActionLoading(prev => ({ ...prev, [id]: true }));
+    await new Promise(res => setTimeout(res, 700));
     const updated = updateUserStatus(id, "pending");
     setUsers([...updated]);
+    setActionLoading(prev => ({ ...prev, [id]: false }));
     toast("대기 상태로 변경됨");
   };
 
@@ -35,12 +58,12 @@ export default function DashboardPage() {
     filter === "all" ? users : users.filter(u => u.status === filter);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm rounded-b-lg">
+    <div className="min-h-screen bg-background text-foreground ">
+      <header className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
         <img src="/logo.png" alt="서비스 로고" className="h-16 w-auto min-w-[64px] max-h-24 cursor-pointer" />
         <button
           onClick={logout}
-          className="flex items-center gap-2 bg-[#7F8CAA] text-white py-2 px-4 rounded-lg shadow hover:bg-[#333446] transition font-semibold text-base border border-[#B8CFCE] cursor-pointer"
+          className="flex items-center gap-2 bg-[#7F8CAA] text-white py-2 px-4 rounded-lg shadow hover:bg-[#333446] transition font-semibold text-base border border-[#B8CFCE] cursor-pointer "
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
@@ -50,19 +73,47 @@ export default function DashboardPage() {
       </header>
       <main className="max-w-3xl mx-auto px-4 py-10">
         <FilterBar filter={filter} setFilter={setFilter} />
-        <div className="grid gap-6 sm:grid-cols-2 mt-6">
-          {filteredUsers.map(user => (
-            <UserCard
-              key={user.id}
-              user={user}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onPending={handlePending}
-            />
-          ))}
-        </div>
-        {filteredUsers.length === 0 && (
-          <div className="text-center text-secondary mt-12">No users found.</div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px]">
+            <svg className="animate-spin h-8 w-8 text-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+            <div className="text-secondary">데이터를 불러오는 중...</div>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px]">
+            <svg className="h-10 w-10 text-red-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-red-500 font-semibold">{error}</div>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 mt-6">
+              {filteredUsers.map(user => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onPending={handlePending}
+                  actionLoading={!!actionLoading[user.id]}
+                />
+              ))}
+            </div>
+            {filteredUsers.length === 0 && (
+              <div className="flex flex-col items-center justify-center mt-16 gap-3">
+                <svg className="h-14 w-14 text-gray-300 mb-2" fill="none" viewBox="0 0 48 48" stroke="currentColor">
+                  <circle cx="24" cy="24" r="22" strokeWidth="2" className="text-gray-200" fill="white" />
+                  <path d="M32 20a8 8 0 11-16 0 8 8 0 0116 0z" strokeWidth="2" className="text-gray-300" />
+                  <path d="M12 38c0-4 8-6 12-6s12 2 12 6" strokeWidth="2" className="text-gray-200" />
+                </svg>
+                <div className="font-bold text-lg text-gray-500">No users found.</div>
+                <div className="text-sm text-gray-400">조건에 맞는 사용자가 없습니다.</div>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

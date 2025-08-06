@@ -6,9 +6,9 @@ interface StatusBadgeProps {
 }
 
 const statusMap = {
-  pending: "bg-[#EAEFEF] text-[#333446] border-[#B8CFCE]",
-  approved: "bg-[#7F8CAA] text-[#333446] border-[#333446]",
-  rejected: "bg-[#B8CFCE] text-[#333446] border-[#7F8CAA]",
+  pending: "bg-[#EAEFEF] text-[#333446] border-[#B8CFCE] ",
+  approved: "bg-[#7F8CAA] text-[#333446] border-[#333446] ",
+  rejected: "bg-[#B8CFCE] text-[#333446] border-[#7F8CAA] ",
 };
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => (

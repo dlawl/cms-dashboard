@@ -10,7 +10,7 @@ module.exports = {
         secondary: '#64748b',
         accent: '#38bdf8',
         background: '#f8fafc',
-        'background-dark': '#1e293b',
+        
         foreground: '#1e293b',
       },
       fontFamily: {

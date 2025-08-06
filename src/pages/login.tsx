@@ -20,8 +20,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F6FA] text-[#333446]">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-xl shadow-xl p-8 flex flex-col items-center">
+      <div className="w-full max-w-md mx-auto px-4 sm:px-0">
+        <div className="bg-white rounded-xl shadow-xl p-4 sm:p-8 flex flex-col items-center">
           <img src="/logo.png" alt="서비스 로고" className="h-20 w-auto mx-auto mb-4" />
           <div className="text-2xl font-bold mb-2">Admin Dashboard</div>
           <p className="text-sm text-[#7F8CAA] mb-6">관리자 전용 로그인</p>
@@ -76,7 +76,7 @@ export default function LoginPage() {
             {error && <div className="mb-4 text-sm text-red-500">{error}</div>}
             <button
               type="submit"
-              className="w-full bg-[#7F8CAA] text-white py-3 rounded-lg shadow hover:bg-[#333446] transition font-bold text-base border border-[#B8CFCE] cursor-pointer mb-2"
+              className="w-full bg-[#7F8CAA] text-white py-3 rounded-lg shadow hover:bg-[#333446] transition font-bold text-base border border-[#B8CFCE] cursor-pointer mt-4 mb-2"
             >
               로그인
             </button>
