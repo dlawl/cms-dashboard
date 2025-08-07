@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
 import { getUsers, updateUserStatus, User, UserStatus } from "../services/userService";
 import { UserCard } from "../components/UserCard";
+import StatsSummarySection from "../components/Stats/StatsSummarySection";
 import { FilterBar } from "../components/FilterBar";
 import { toast } from "react-hot-toast";
 export default function DashboardPage() {
@@ -86,9 +87,6 @@ export default function DashboardPage() {
     });
   };
 
-
-
-
   return (
     <>
       <Head>
@@ -109,6 +107,9 @@ export default function DashboardPage() {
         </button>
       </header>
       <main className="max-w-3xl mx-auto px-4 py-10">
+  {/* 통계 요약 카드 */}
+  <StatsSummarySection />
+
         <FilterBar filter={filter} setFilter={setFilter} />
         {loading ? (
           <div className="flex flex-col items-center justify-center min-h-[200px]">

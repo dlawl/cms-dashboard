@@ -94,6 +94,16 @@ graph LR
 ├── utils/
 └── constants/
 
+## 4.x 통계/차트(StatsCard, StatsChart) 상세 구현
+
+- **데이터 흐름**: userService에서 user 배열을 가져와 statusChangeDate 필드 기준으로 집계. 상태 변경(approve/reject) 시 statusChangeDate를 오늘 날짜로 갱신, 곧바로 통계/차트에 반영
+- **컴포넌트 구조**:
+  - `StatsSummarySection`: 카드와 차트 모두를 포함, useMemo로 집계 데이터 생성
+  - `StatsCard`: label, value만 표시, 아이콘/컬러 강조 없음
+  - `StatsChart`: recharts BarChart 사용, Bar 색상은 #B8CFCE(반려 버튼 배경색)로 통일
+- **스타일/UX**: Tailwind CSS 기반, 카드/차트 모두 흰색 배경+회색 테두리+미니멀 구조, 반응형
+- **확장성**: 추후 API 연동, 기간/상태별 필터, 다중 상태 차트 등 확장 용이
+
 ## 5. 트러블슈팅/의사결정 기록
 
 - 상태 필터와 React Query 캐싱 충돌 → 쿼리키 분리로 해결

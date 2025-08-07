@@ -60,6 +60,15 @@ src/ ├── pages/ # login.tsx, dashboard.tsx ├── components/ # UI 단�
 ```
 
 
+## 📊 통계/차트(Stats) 기능
+
+- 최근 7일간의 사용자 상태 변경(승인/반려/대기) 내역을 카드와 차트로 시각화합니다.
+- 상태 변경 시 통계/차트가 실시간으로 즉시 반영됩니다.
+- Bar 차트의 색상은 반려 버튼과 동일한 #B8CFCE로 통일되어 전체 UI와 어울립니다.
+- 관련 컴포넌트: `StatsCard`, `StatsChart`, `StatsSummarySection` (`src/components/Stats/`)
+- 카드/차트 모두 미니멀&깔끔 스타일, 반응형 대응
+- 데이터는 mock user 배열에서 statusChangeDate 기반으로 직접 집계합니다.
+
 ## ✅ 기능 요약 및 범위
 
 | 기능 영역        | 1차(MVP) 구현 | 향후 확장 가능 | 비고                   |
