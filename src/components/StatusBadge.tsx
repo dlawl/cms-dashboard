@@ -11,10 +11,14 @@ const statusMap = {
   rejected: "bg-[#B8CFCE] text-[#333446] border-[#7F8CAA] ",
 };
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => (
-  <span
-    className={`px-3 py-1 rounded-full border text-xs font-semibold ${statusMap[status]}`}
-  >
-    {status.charAt(0).toUpperCase() + status.slice(1)}
-  </span>
-);
+export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+  // 방어 코드: status가 없거나 잘못된 값이면 "pending"을 기본값으로 사용
+  const safeStatus = status && statusMap[status] ? status : "pending";
+  return (
+    <span
+      className={`px-3 py-1 rounded-full border text-xs font-semibold ${statusMap[safeStatus]}`}
+    >
+      {safeStatus.charAt(0).toUpperCase() + safeStatus.slice(1)}
+    </span>
+  );
+};

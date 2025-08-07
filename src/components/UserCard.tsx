@@ -21,8 +21,8 @@ const UserCardComponent: React.FC<UserCardProps> = ({ user, onApprove, onReject,
   >
     <div className="flex items-center justify-between mb-2">
       <div>
-        <div className="font-bold text-lg text-primary ">{user.name}</div>
-        <div className="text-secondary text-sm text-gray-400">{user.email}</div>
+        <div className="font-bold text-lg text-primary ">{user.name ?? "이름 없음"}</div>
+        <div className="text-secondary text-sm text-gray-400">{user.email ?? "이메일 없음"}</div>
       </div>
       <StatusBadge status={user.status} />
     </div>

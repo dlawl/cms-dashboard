@@ -24,6 +24,7 @@ export function useAuth(redirectIfUnauth = false) {
 
   const logout = () => {
     localStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem("cms-users"); // 유저 데이터까지 초기화
     setAuthenticated(false);
     router.replace("/login");
   };
