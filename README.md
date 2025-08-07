@@ -30,7 +30,17 @@
 | 유효성 검증    | Zod + React Hook Form   | 폼 유효성 체크                             |
 | 배포           | Vercel                  | 빠른 배포, 실시간 URL 공유                 |
 
-## 🚦 서버 상태 관리 & Optimistic UI
+
+## 🛡️ 데이터 무결성 및 UI 방어 코드 강화
+
+- **비정상(누락/오류) 사용자 데이터에 대한 UI 방어 코드 추가**
+  - `StatusBadge` 컴포넌트: status 값이 없거나 잘못된 경우 "pending"으로 안전하게 fallback 처리
+  - `UserCard` 컴포넌트: name/email 필드가 없을 때 각각 "이름 없음", "이메일 없음"으로 표시
+- **효과**
+  - Mock 데이터가 일부러 잘못되거나 필드가 누락되어도 대시보드 UI가 깨지지 않고 정상적으로 동작
+  - TypeError 등 런타임 에러 발생 빈도 0회로 감소
+  - 사용자 경험(UX) 및 전체 서비스 안정성 향상
+
 
 - 사용자 목록과 상태 변경(승인/반려/대기)은 React Query를 사용해 관리합니다.
 - [src/pages/dashboard.tsx](./src/pages/dashboard.tsx) — 사용자 목록, 상태변경, optimistic UI, mutation 중복 방지 핵심 로직
