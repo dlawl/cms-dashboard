@@ -8,10 +8,10 @@
 ## 2. 시스템 아키텍처
 
 - Next.js 기반 SPA (pages router)
-- 상태 관리: Zustand (전역), React Query (서버 상태)
+- 상태 관리: Zustand (전역, 실제 구현: 인증 상태 전역 관리), React Query (서버 상태)
 - 스타일: Tailwind CSS, shadcn/ui
 - 데이터: mock API (services/에 구현)
-- 인증: localStorage + Zustand
+- 인증: localStorage + Zustand (authStore.ts, useAuth.ts에서 zustand와 localStorage 동기화)
 - 배포: Vercel
 
 ### Decision Rationale (의사결정 근거)
@@ -38,9 +38,9 @@ graph LR
 
 ### 3.1 로그인/인증
 
-- 로그인 폼: React Hook Form + Zod
-- 인증 성공 시 localStorage에 토큰 저장, Zustand로 상태 관리
-- ProtectedRoute 미들웨어로 인증 없는 접근 차단
+- 로그인 폼: useState로 간단 구현(React Hook Form + Zod는 미구현)
+- 인증 성공 시 localStorage에 인증값 저장, zustand(authStore.ts)로 상태 전역 관리
+- useAuth.ts에서 zustand와 localStorage 동기화, 인증 없는 접근 차단(redirect)
 
 ### Troubleshooting & Problem Solving (트러블슈팅/문제 해결)
 - **문제:** optimistic UI 적용 후 승인→대기 전환 시, API 응답보다 UI 반영이 빨라 race condition 발생
@@ -59,7 +59,7 @@ graph LR
 ### 3.3 필터/검색
 
 - 전체/승인/반려 필터 (URL query param 연동)
-- Zustand로 필터 상태 관리
+- (확장 가능) 필터, 유저 상태 등도 필요시 zustand로 전역 관리 가능. 현재는 인증 상태만 zustand로 관리
 - React Query 쿼리키에 filter(상태) 포함 → 필터 전환 시 정확한 데이터 fetch
 - (보너스) 검색/정렬 기능 확장 가능
 
@@ -83,11 +83,19 @@ graph LR
 
 - 쿼리키에 filter를 포함해 필터 변경 시 캐시 데이터가 남는 문제를 해결함.
 - mutation 중 중복 요청(race condition) 방지 및 optimistic update/rollback 패턴을 실제 코드에 반영함.
+- [2025-08] 인증 상태 전역 관리 구조 개선 (zustand 도입)
+  - 기존 useState + localStorage 방식의 한계 → zustand store(authStore.ts)로 전역화
+  - 타입스크립트 환경에서 selector 파라미터 타입, import 방식 등 시행착오
+  - useEffect dependency array 보완 등으로 에러 해결
+  - 결과: 인증 상태가 전역에서 일관성 있게 공유되고, 새로고침/이동에도 유지됨. 기획서와 실제 코드 일치
+
 ├── components/
 ├── features/
 ├── services/
 ├── stores/
+│   └── authStore.ts
 ├── hooks/
+│   └── useAuth.ts
 ├── schemas/
 ├── types/
 ├── styles/
@@ -165,11 +173,14 @@ const mutation = useMutation(updateUserStatus, {
 
 #### (2) Zustand Store 정의
 ```typescript
-import create from 'zustand';
-export const useAuthStore = create(set => ({
+import { create } from 'zustand';
+export interface AuthState {
+  authenticated: boolean;
+  setAuthenticated: (auth: boolean) => void;
+}
+export const useAuthStore = create<AuthState>((set) => ({
   authenticated: false,
-  login: () => set({ authenticated: true }),
-  logout: () => set({ authenticated: false }),
+  setAuthenticated: (auth: boolean) => set({ authenticated: auth }),
 }));
 ```
 

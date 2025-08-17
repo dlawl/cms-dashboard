@@ -21,7 +21,7 @@
 | ------------- | ----------------------- | ------------------------------------------ |
 | 프레임워크     | Next.js (pages router)  | 실무에서 많이 사용, SSR 구조 이해           |
 | 언어          | TypeScript              | 타입 기반 안정성 확보                      |
-| 상태 관리      | Zustand                 | lightweight, 코드 분산 최소화               |
+| 상태 관리      | Zustand                 | lightweight, 코드 분산 최소화, 인증 상태 등 전역 상태 관리 (실제 구현: 인증 상태 전역 관리에 zustand 사용) |
 | 서버 상태      | React Query             | API 캐싱, 비동기 통신 흐름 관리, optimistic UI(즉시 반영), 실패 시 롤백, mutation 중복/동시성(race condition) 방지 |
 | 스타일링       | Tailwind CSS            | 빠른 UI, 반응형 용이                       |
 | 컴포넌트       | shadcn/ui               | 실무형 컴포넌트 라이브러리, UI 일관성 강화  |
@@ -47,6 +47,7 @@
 - [src/services/userService.ts](./src/services/userService.ts) — mock 데이터 관리
 
 - [dashboard.tsx](./src/pages/dashboard.tsx)에서 `useQuery`로 사용자 목록을 가져오고, `useMutation`으로 사용자 상태를 변경합니다.
+- [authStore.ts](./src/store/authStore.ts)에서 zustand로 인증 상태를 전역 관리합니다. [useAuth.ts](./src/hooks/useAuth.ts)에서 zustand store와 localStorage를 동기화하여 인증 상태를 일관성 있게 유지합니다.
 - 상태 변경 시, onMutate에서 UI를 먼저 낙관적으로(optimistic) 변경하고, onError에서 실패 시 이전 상태로 롤백합니다.
 - 동일 유저에 대해 상태 변경 요청이 중복 발생하는 것을 방지하기 위해, 각 유저별로 actionLoading 상태를 관리합니다. mutation이 진행 중인 유저에 대해서는 추가 요청을 무시하여 race condition을 방지합니다.
 - 쿼리키에 필터(상태)를 포함해, 필터 전환 시마다 해당 조건의 데이터만 새로 불러옵니다.
@@ -56,7 +57,18 @@
 ## 📁 폴더 구조
 
 ```
-src/ ├── pages/ # login.tsx, dashboard.tsx ├── components/ # UI 단위 컴포넌트 (UserCard, FilterBar 등) ├── features/ # 도메인 기반 폴더 (users/, auth/ 등) ├── services/ # API 통신 모듈 (mock 포함) ├── stores/ # Zustand store ├── hooks/ # 커스텀 훅 ├── schemas/ # Zod 스키마 ├── types/ # 타입 선언 ├── styles/ # 글로벌 스타일 ├── utils/ # 공통 유틸 함수 └── constants/ # 상태 값, 필터 옵션 등
+src/
+├── pages/    # login.tsx, dashboard.tsx
+├── components/ # UI 단위 컴포넌트 (UserCard, FilterBar 등)
+├── features/   # 도메인 기반 폴더 (users/, auth/ 등)
+├── services/   # API 통신 모듈 (mock 포함)
+├── store/      # Zustand store (authStore.ts: 인증 상태 전역 관리)
+├── hooks/      # 커스텀 훅 (useAuth.ts: zustand + localStorage 동기화)
+├── schemas/    # Zod 스키마
+├── types/      # 타입 선언
+├── styles/     # 글로벌 스타일
+├── utils/      # 공통 유틸 함수
+└── constants/  # 상태 값, 필터 옵션 등
 ```
 
 
@@ -85,14 +97,14 @@ src/ ├── pages/ # login.tsx, dashboard.tsx ├── components/ # UI 단�
 | 날짜 | 작업 내용 | 체크포인트 |
 | --- | --- | --- |
 | D1 | 프로젝트 초기 세팅 + 폴더 구조 설계 | GitHub 연결, Tailwind 적용 |
-| D2 | 로그인 UI + 상태 저장 (Zustand) | localStorage 연동 |
+| D2 | 로그인 UI + 상태 저장 (Zustand) | zustand + localStorage 연동(실제 구현: 인증 상태를 zustand로 전역 관리) |
 | D3 | /dashboard 구성 + mock 유저 데이터 연동 | React Query + Suspense |
 | D4 | 필터 기능 + 상태 전환 로직 구현 | Zustand 전역 상태 연동 |
 | D5 | UX 디테일 작업 (Toast, 애니메이션) | react-hot-toast, GSAP 적용 |
 | D6 | 에러처리, 반응형 대응 | 로딩/에러 UI, media query |
 | D7 | README 작성 + PPT 이미지 캡처 | 포트폴리오 문서화, 배포 완료 |
 
-## 📝 기획서 vs 실제 구현 비교
+## 기획서 vs 실제 구현 비교
 
 | 항목                 | 기획서 내용                      | 실제 구현(MVP)           | 비고                     |
 | ------------------ | ---------------------------- | --------------------- | ---------------------- |
@@ -110,6 +122,14 @@ src/ ├── pages/ # login.tsx, dashboard.tsx ├── components/ # UI 단�
 - [ ] 고급 검색/정렬
 
 ## 🧪 트러블슈팅
+
+### [2025-08] 인증 상태 전역 관리 구조 개선 (zustand 도입)
+- 배경: 기존 useState + localStorage 방식은 여러 컴포넌트/페이지에서 인증 상태 공유에 한계가 있었음
+- 시도: zustand store(authStore.ts) 도입, useAuth 훅에서 zustand selector로 상태 관리
+- 시행착오: zustand import, 타입스크립트 selector 파라미터 타입, useEffect dependency 등에서 에러 발생
+- 해결: 타입 명시, dependency array 보완, store 구조 단순화
+- 결과: 인증 상태가 전역에서 일관성 있게 공유되고, 새로고침/이동에도 유지됨. 기획서와 실제 코드 일치
+
 
 | 항목   | 내용 |
 | ------ | ---- |

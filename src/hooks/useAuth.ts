@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useAuthStore } from "../store/authStore";
 import { useRouter } from "next/router";
 
 const AUTH_KEY = "cms-authenticated";
 
 export function useAuth(redirectIfUnauth = false) {
-  const [authenticated, setAuthenticated] = useState<boolean>(false);
+  const authenticated = useAuthStore((state: import("../store/authStore").AuthState) => state.authenticated);
+  const setAuthenticated = useAuthStore((state: import("../store/authStore").AuthState) => state.setAuthenticated);
   const router = useRouter();
 
   useEffect(() => {
@@ -14,7 +16,7 @@ export function useAuth(redirectIfUnauth = false) {
     if (redirectIfUnauth && !isAuth) {
       router.replace("/login");
     }
-  }, [redirectIfUnauth, router]);
+  }, [redirectIfUnauth, router, setAuthenticated]);
 
   const login = () => {
     localStorage.setItem(AUTH_KEY, "true");
