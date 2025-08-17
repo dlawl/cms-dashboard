@@ -104,11 +104,17 @@ graph LR
 
 ## 4.x 통계/차트(StatsCard, StatsChart) 상세 구현
 
-- **데이터 흐름**: userService에서 user 배열을 가져와 statusChangeDate 필드 기준으로 집계. 상태 변경(approve/reject) 시 statusChangeDate를 오늘 날짜로 갱신, 곧바로 통계/차트에 반영
+- **데이터 흐름**: userService에서 user 배열을 가져와 statusChangeDate 필드 기준으로, postStatsService에서 게시글 mock 데이터를 가져와 date 기준으로 각각 집계. 상태 변경(approve/reject) 시 statusChangeDate를 오늘 날짜로 갱신, 곧바로 통계/차트에 반영
 - **컴포넌트 구조**:
-  - `StatsSummarySection`: 카드와 차트 모두를 포함, useMemo로 집계 데이터 생성
+  - `StatsSummarySection`: 사용자·게시글 카드와 차트 모두를 포함, useMemo로 집계 데이터 생성
   - `StatsCard`: label, value만 표시, 아이콘/컬러 강조 없음
   - `StatsChart`: recharts BarChart 사용, Bar 색상은 #B8CFCE(반려 버튼 배경색)로 통일
+- **mock 데이터 기반**: 실제 데이터 연동 전 임시 데이터로 동작하며, 오늘 날짜 기준의 최근 7일 데이터가 아닐 수 있음. 실제 서비스 전환 시에는 API/DB 연동 필요.
+
+### 회고/트러블슈팅 요약
+- mock 데이터 날짜가 실제 "최근 7일"과 달라 차트에 과거 데이터만 표시되는 UX 혼란이 있었음
+- 실제 데이터 연동 시 오늘 기준 동적 집계 또는 API 쿼리 필요함을 깨달음
+- 컴포넌트 재사용성과 서비스 분리로 확장성 확보
 - **스타일/UX**: Tailwind CSS 기반, 카드/차트 모두 흰색 배경+회색 테두리+미니멀 구조, 반응형
 - **확장성**: 추후 API 연동, 기간/상태별 필터, 다중 상태 차트 등 확장 용이
 

@@ -7,7 +7,14 @@ import { fetchPostStats, fetchDailyPostStats } from "../../services/postStatsSer
 
 const StatsSummarySection: React.FC = () => {
   // 전체 사용자 데이터 fetch
-  const { data: users = [] } = useQuery({ queryKey: ["users", "all"], queryFn: () => getUsers("all") });
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const { data: users = [] } = useQuery({
+    queryKey: ["users", "all", token],
+    queryFn: () => getUsers("all"),
+    enabled: !!token,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
   // 게시글 통계 fetch
   const { data: postStats } = useQuery({ queryKey: ["posts", "stats"], queryFn: fetchPostStats });
   const { data: dailyPostStats = [] } = useQuery({ queryKey: ["posts", "dailyStats"], queryFn: fetchDailyPostStats });

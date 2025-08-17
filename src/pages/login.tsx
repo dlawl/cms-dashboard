@@ -17,7 +17,30 @@ export default function LoginPage() {
       return;
     }
     setError("");
-    login();
+    // 실제 로그인 요청 및 토큰 저장
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || '로그인 실패');
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data.token) {
+          localStorage.setItem('token', data.token); // JWT 토큰 저장
+          login(); // 기존 인증 상태 갱신 및 이동
+        } else {
+          throw new Error('토큰이 없습니다.');
+        }
+      })
+      .catch((err) => {
+        setError(err.message || '로그인 실패');
+      });
   };
 
   return (

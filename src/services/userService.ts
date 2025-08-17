@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export type UserStatus = "pending" | "approved" | "rejected";
 
 export interface User {
@@ -5,46 +7,29 @@ export interface User {
   name: string;
   email: string;
   status: UserStatus;
-  statusChangeDate: string;
+  statusChangeDate?: string;
 }
 
-const USERS_KEY = "cms-users";
+const API_URL = "http://localhost:4000/api";
 
-const defaultUsers: User[] = [
-  { id: "1", name: "Alice Kim", email: "alice@example.com", status: "pending", statusChangeDate: "2025-08-07" },
-  { id: "2", name: "Bob Lee", email: "bob@example.com", status: "pending", statusChangeDate: "2025-08-07" },
-  { id: "3", name: "Charlie Park", email: "charlie@example.com", status: "approved", statusChangeDate: "2025-08-07" },
-  { id: "4", name: "Dana Choi", email: "dana@example.com", status: "rejected", statusChangeDate: "2025-08-07" },
-];
+// axios 인스턴스 생성: 매 요청마다 토큰 자동 주입
+const api = axios.create({ baseURL: API_URL });
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
 
-function getUsersFromStorage(): User[] {
-  if (typeof window === "undefined") return defaultUsers;
-  const data = localStorage.getItem(USERS_KEY);
-  return data ? JSON.parse(data) : defaultUsers;
+export async function getUsers(filter: UserStatus | "all" = "all"): Promise<User[]> {
+  const res = await api.get(`/users${filter && filter !== "all" ? `?status=${filter}` : ""}`);
+  return res.data;
 }
 
-function saveUsersToStorage(users: User[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-export function getUsers(filter: UserStatus | "all" = "all"): User[] {
-  const users = getUsersFromStorage();
-  if (filter === "all") return users;
-  return users.filter(u => u.status === filter);
-}
-
-export function updateUserStatus(id: string, status: UserStatus) {
-  const today = new Date().toISOString().slice(0, 10);
-  const users = getUsersFromStorage();
-  const updated = users.map(u =>
-    u.id === id
-      ? { ...u, status, statusChangeDate: today }
-      : u
-  );
-  saveUsersToStorage(updated);
-  return updated;
-}
-
-export function resetUsers() {
-  saveUsersToStorage(defaultUsers);
+export async function updateUserStatus(id: string, status: UserStatus): Promise<void> {
+  await api.patch(`/users/${id}/status`, { status });
 }
