@@ -21,7 +21,7 @@
 | ------------- | ----------------------- | ------------------------------------------ |
 | 프레임워크     | Next.js (pages router)  | 실무에서 많이 사용, SSR 구조 이해           |
 | 언어          | TypeScript              | 타입 기반 안정성 확보                      |
-| 상태 관리      | Zustand                 | lightweight, 코드 분산 최소화, 인증 상태 등 전역 상태 관리 (실제 구현: 인증 상태 전역 관리에 zustand 사용) |
+| 상태 관리      | Zustand                 | lightweight, 코드 분산 최소화, 인증 상태 등 전역 상태 관리 (인증 상태 전역 관리에 zustand 사용) |
 | 서버 상태      | React Query             | API 캐싱, 비동기 통신 흐름 관리, optimistic UI(즉시 반영), 실패 시 롤백, mutation 중복/동시성(race condition) 방지 |
 | 스타일링       | Tailwind CSS            | 빠른 UI, 반응형 용이                       |
 | 컴포넌트       | shadcn/ui               | 실무형 컴포넌트 라이브러리, UI 일관성 강화  |
@@ -97,21 +97,13 @@ src/
 | 날짜 | 작업 내용 | 체크포인트 |
 | --- | --- | --- |
 | D1 | 프로젝트 초기 세팅 + 폴더 구조 설계 | GitHub 연결, Tailwind 적용 |
-| D2 | 로그인 UI + 상태 저장 (Zustand) | zustand + localStorage 연동(실제 구현: 인증 상태를 zustand로 전역 관리) |
+| D2 | 로그인 UI + 상태 저장 (Zustand) | zustand + localStorage 연동(인증 상태를 zustand로 전역 관리) |
 | D3 | /dashboard 구성 + mock 유저 데이터 연동 | React Query + Suspense |
 | D4 | 필터 기능 + 상태 전환 로직 구현 | Zustand 전역 상태 연동 |
 | D5 | UX 디테일 작업 (Toast, 애니메이션) | react-hot-toast, GSAP 적용 |
 | D6 | 에러처리, 반응형 대응 | 로딩/에러 UI, media query |
 | D7 | README 작성 + PPT 이미지 캡처 | 포트폴리오 문서화, 배포 완료 |
-
-## 기획서 vs 실제 구현 비교
-
-| 항목                 | 기획서 내용                      | 실제 구현(MVP)           | 비고                     |
-| ------------------ | ---------------------------- | --------------------- | ---------------------- |
-| 백엔드 연동            | Node.js/Express/MySQL 예상      | mock 기반 프론트만 개발     | MVP는 FE에 집중          |
-| 통계/차트             | 방문자, 게시글, 활동 통계        | 미포함(보너스 영역)        | 향후 확장 가능           |
-| 사용자 관리/권한 설정    | 관리자 추가/삭제, 권한 설정       | 단일 로그인만 구현         | Role 관리 제외           |
-| CRUD 전체            | 게시글/파일 등 전체 CRUD         | 상태 전환, 승인/반려 위주   | 워크플로우 관리 중심      |
+    |
 
 ## 🚦 향후 확장 기능 체크리스트
 

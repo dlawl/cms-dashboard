@@ -3,10 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { getUsers } from "../../services/userService";
 import StatsCard from "./StatsCard";
 import StatsChart from "./StatsChart";
+import { fetchPostStats, fetchDailyPostStats } from "../../services/postStatsService";
 
 const StatsSummarySection: React.FC = () => {
   // 전체 사용자 데이터 fetch
   const { data: users = [] } = useQuery({ queryKey: ["users", "all"], queryFn: () => getUsers("all") });
+  // 게시글 통계 fetch
+  const { data: postStats } = useQuery({ queryKey: ["posts", "stats"], queryFn: fetchPostStats });
+  const { data: dailyPostStats = [] } = useQuery({ queryKey: ["posts", "dailyStats"], queryFn: fetchDailyPostStats });
 
   // 요약 통계 계산
   const stats = useMemo(() => {
@@ -46,6 +50,17 @@ const StatsSummarySection: React.FC = () => {
     });
   }, [users, recentDates]);
 
+  // 게시글 차트 데이터
+  const postChartData = useMemo(() => {
+    return dailyPostStats.map(item => ({
+      name: item.date.slice(5),
+      발행: item.published,
+      임시: item.draft,
+      삭제: item.deleted,
+      value: item.published + item.draft + item.deleted,
+    }));
+  }, [dailyPostStats]);
+
   return (
     <section className="mb-8">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -54,10 +69,16 @@ const StatsSummarySection: React.FC = () => {
         <StatsCard label="반려" value={stats.rejected} />
         <StatsCard label="대기" value={stats.pending} />
       </div>
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white rounded-lg shadow p-4 mb-4">
         <StatsChart
           data={chartData}
-          title="최근 7일 처리 현황"
+          title="최근 7일 사용자 처리 현황"
+        />
+      </div>
+      <div className="bg-white rounded-lg shadow p-4">
+        <StatsChart
+          data={postChartData}
+          title="최근 7일 게시글 처리 현황"
         />
       </div>
     </section>

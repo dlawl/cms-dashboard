@@ -7,6 +7,8 @@ const AUTH_KEY = "cms-authenticated";
 export function useAuth(redirectIfUnauth = false) {
   const authenticated = useAuthStore((state: import("../store/authStore").AuthState) => state.authenticated);
   const setAuthenticated = useAuthStore((state: import("../store/authStore").AuthState) => state.setAuthenticated);
+  const role = useAuthStore((state: import("../store/authStore").AuthState) => state.role);
+  const setRole = useAuthStore((state: import("../store/authStore").AuthState) => state.setRole);
   const router = useRouter();
 
   useEffect(() => {
@@ -31,5 +33,5 @@ export function useAuth(redirectIfUnauth = false) {
     router.replace("/login");
   };
 
-  return { authenticated, login, logout };
+  return { authenticated, login, logout, role, setRole };
 }
