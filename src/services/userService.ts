@@ -25,6 +25,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// 401(Unauthorized) 응답 시 자동 로그아웃 및 로그인 페이지 이동
+if (typeof window !== "undefined") {
+  api.interceptors.response.use(
+    response => response,
+    error => {
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("cms-authenticated");
+        // 로그인 페이지로 이동
+        window.location.href = "/login?expired=1";
+      }
+      return Promise.reject(error);
+    }
+  );
+}
+
 export async function getUsers(filter: UserStatus | "all" = "all"): Promise<User[]> {
   const res = await api.get(`/users${filter && filter !== "all" ? `?status=${filter}` : ""}`);
   return res.data;

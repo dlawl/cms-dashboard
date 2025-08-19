@@ -4,11 +4,34 @@ import Head from "next/head";
 import { FixedSizeList as List } from "react-window";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
+// 클라이언트 환경(localStorage 기반 인증)과 SSR(쿠키 기반 인증) 분리 필요
 import { getUsers, updateUserStatus, User, UserStatus } from "../services/userService";
 import { UserCard } from "../components/UserCard";
 import StatsSummarySection from "../components/Stats/StatsSummarySection";
 import { FilterBar } from "../components/FilterBar";
 import { toast } from "react-hot-toast";
+import { GetServerSidePropsContext } from "next";
+import nookies from "nookies";
+
+// SSR 환경에서 인증 쿠키 검사 예시 (실무적)
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  // SSR에서는 localStorage 접근 불가, 쿠키 기반 인증 필요
+  const cookies = nookies.get(context);
+  const token = cookies['auth-token']; // 예시: 서버에서 발급한 인증 토큰
+  if (!token) {
+    // 인증 실패 시 로그인 페이지로 리다이렉트
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+  // 토큰 유효성 검증(실제 환경에서는 서버에서 검증)
+  // ...
+  return { props: {} };
+}
+
 export default function DashboardPage() {
   const { authenticated, logout } = useAuth(true);
   const [filter, setFilter] = useState<UserStatus | "all">("all");
@@ -34,7 +57,9 @@ export default function DashboardPage() {
   const mutation = useMutation<User[], Error, MutateVars, MutateContext>({
     mutationFn: async ({ id, status }) => {
       // 실제 환경에서는 서버 요청 실패를 시뮬레이션 할 수 있음
-      return updateUserStatus(id, status);
+      await updateUserStatus(id, status);
+      // 상태 변경 후 최신 유저 목록 반환
+      return getUsers(filter);
     },
     onMutate: async ({ id, status }) => {
       setActionLoading(prev => ({ ...prev, [id]: true }));
