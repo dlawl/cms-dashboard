@@ -14,26 +14,37 @@ import { GetServerSidePropsContext } from "next";
 import nookies from "nookies";
 
 // SSR 환경에서 인증 쿠키 검사 예시 (실무적)
+import axios from "axios";
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  // SSR에서는 localStorage 접근 불가, 쿠키 기반 인증 필요
   const cookies = nookies.get(context);
-  const token = cookies['auth-token']; // 예시: 서버에서 발급한 인증 토큰
+  const token = cookies['token'];
   if (!token) {
-    // 인증 실패 시 로그인 페이지로 리다이렉트
     return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
+      redirect: { destination: '/login', permanent: false },
     };
   }
-  // 토큰 유효성 검증(실제 환경에서는 서버에서 검증)
-  // ...
-  return { props: {} };
+  try {
+    // API 서버에서 토큰 검증 및 role/status 조회 (id 추출 X)
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const { data: user } = await axios.get(`${baseUrl}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (user.status !== 'approved') {
+      return {
+        redirect: { destination: '/login', permanent: false },
+      };
+    }
+    return { props: {} };
+  } catch {
+    return {
+      redirect: { destination: '/login', permanent: false },
+    };
+  }
 }
 
 export default function DashboardPage() {
-  const { authenticated, logout } = useAuth(true);
+  const { authenticated, logout, role } = useAuth(true);
   const [filter, setFilter] = useState<UserStatus | "all">("all");
   const [actionLoading, setActionLoading] = useState<{ [id: string]: boolean }>({});
   const queryClient = useQueryClient();
@@ -162,6 +173,7 @@ export default function DashboardPage() {
                   onReject={handleReject}
                   onPending={handlePending}
                   actionLoading={!!actionLoading[user.id]}
+                  isAdmin={role === 'admin'}
                 />
               ))}
             </div>

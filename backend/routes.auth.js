@@ -43,4 +43,28 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// 인증 미들웨어 (users.js와 동일하게 재정의)
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: '토큰이 필요합니다.' });
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: '유효하지 않은 토큰입니다.' });
+    req.user = user;
+    next();
+  });
+}
+
+// 내 정보 조회 (SSR에서 사용)
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT id, email, name, role, status FROM users WHERE id = ?', [req.user.id]);
+    if (!rows.length) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    const user = rows[0];
+    res.json(user);
+  } catch (e) {
+    res.status(500).json({ message: '내 정보 조회 실패', error: e.message });
+  }
+});
+
 export default router;

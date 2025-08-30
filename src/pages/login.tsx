@@ -2,6 +2,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Head from "next/head";
 import { useAuth } from "../hooks/useAuth";
+import { useRouter } from "next/router";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -9,6 +10,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleGoRegister = () => {
+    router.push("/register");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +37,14 @@ export default function LoginPage() {
         return res.json();
       })
       .then((data) => {
+        if (data.user && data.user.status !== "approved") {
+          setError("계정이 승인되지 않았습니다. 관리자에게 문의하세요.");
+          return;
+        }
         if (data.token) {
           localStorage.setItem('token', data.token); // JWT 토큰 저장
+          // 쿠키에도 토큰 저장 (SSR 인증용)
+          document.cookie = `token=${data.token}; path=/;`;
           login(); // 기존 인증 상태 갱신 및 이동
         } else {
           throw new Error('토큰이 없습니다.');
@@ -116,6 +128,16 @@ export default function LoginPage() {
               {/* <a href="#" className="text-xs text-[#7F8CAA] hover:underline">회원가입</a> */}
             </div>
           </form>
+          <div className="mt-4 text-center">
+            <span className="text-sm text-gray-600">계정이 없으신가요?</span>
+            <button
+              type="button"
+              className="ml-2 text-primary underline text-sm"
+              onClick={() => handleGoRegister()}
+            >
+              회원가입
+            </button>
+          </div>
         </div>
       </div>
     </div>

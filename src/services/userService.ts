@@ -41,6 +41,11 @@ if (typeof window !== "undefined") {
   );
 }
 
+// 회원가입 API
+export async function registerUser({ email, password, name, role }: { email: string; password: string; name: string; role?: string; }) {
+  return api.post("/auth/register", { email, password, name, role });
+}
+
 export async function getUsers(filter: UserStatus | "all" = "all"): Promise<User[]> {
   const res = await api.get(`/users${filter && filter !== "all" ? `?status=${filter}` : ""}`);
   return res.data;
