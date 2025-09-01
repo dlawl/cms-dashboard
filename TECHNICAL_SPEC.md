@@ -80,7 +80,6 @@ graph LR
 
 - GSAP/framer-motion으로 애니메이션
 - 반응형, 접근성 고려
-- shadcn/ui로 일관성 유지
 - react-hot-toast로 상태 변경 성공/실패/롤백 등 사용자 피드백 제공
 - 로딩/에러/empty state 등 UI 세분화
 - UserCard 버튼 disabled:opacity-40 등 Tailwind 활용
