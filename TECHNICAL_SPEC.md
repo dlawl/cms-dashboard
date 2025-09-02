@@ -2,8 +2,9 @@
 
 ## 1. 프로젝트 목표
 
-- 실무에서 활용 가능한 **실제 DB/백엔드 연동형** 관리자 대시보드 MVP 구현
+- 실무에서 활용 가능한 **실제 MySQL DB/Express 백엔드 연동형** 관리자 대시보드 MVP 구현
 - JWT 인증, 상태 관리, 비동기 처리, UX 피드백 등 프론트/백엔드 통합 역량 증명
+- 구조 분리로 추후 Role/CRUD/통계 확장성 확보
 
 ## 2. 시스템 아키텍처
 
@@ -13,14 +14,33 @@
 - **인증**: JWT + localStorage + axios 인터셉터 (userService.ts)
 - **배포**: Vercel(프론트), 자체 서버/클라우드(백엔드)
 
+### 주요 폴더 구조
+```
+backend/
+├── index.js           # Express 서버 진입점
+├── routes.auth.js     # 인증/회원가입 API
+├── routes.users.js    # 사용자 목록/상태변경 API
+├── package.json       # 백엔드 의존성
+├── schema.sql         # DB 스키마 예시
+└── ...
+
+src/
+├── pages/             # 라우트(login, dashboard 등)
+├── components/        # UI 컴포넌트(UserCard, FilterBar, Stats 등)
+├── services/          # API 통신(userService, statsService 등)
+├── store/             # Zustand 인증/역할 상태 관리
+├── hooks/             # useAuth 등 커스텀 훅
+└── ...
+```
+
 ### Decision Rationale (의사결정 근거)
-- **Zustand + React Query 병행:** 서버 동기화가 필요한 데이터(예: 사용자 목록)는 React Query로 캐싱/동기화하고, 인증/필터 등 앱 전역 UI 상태는 Zustand로 관리. 이렇게 분리함으로써 캐싱 정책과 UI 상태 관리의 충돌을 방지하고, 확장성과 유지보수성을 확보.
-- **pages router 선택:** SSR/SSG가 요구되지 않고, MVP 단계에서 라우팅 구조가 단순해 개발 속도와 구조 관리에 유리하다고 판단하여 pages router를 채택.
+- **Zustand + React Query 병행:** 서버 동기화가 필요한 데이터(예: 사용자 목록)는 React Query로 캐싱/동기화, 인증/필터 등 앱 전역 UI 상태는 Zustand로 관리. 분리 설계로 확장성과 유지보수성 확보.
+- **pages router 선택:** SSR/SSG가 요구되지 않고, MVP 단계에서 라우팅 구조가 단순해 개발 속도와 구조 관리에 유리하여 pages router를 채택.
 - **서비스 레이어/상태 관리 계층화:** 추후 통계, 권한, 알림 등 신규 feature를 독립적으로 추가할 수 있도록 설계.
 
 ### Architecture Diagram (데이터 흐름)
 ```mermaid
-graph LR
+ graph LR
   LoginPage --> AuthState
   AuthState --> Dashboard
   Dashboard -->|fetch| UserService
@@ -46,15 +66,6 @@ graph LR
 - **프론트엔드**: 로그인 성공 시 localStorage에 토큰 저장, zustand(authStore.ts)로 인증 상태 전역 관리
 - userService.ts의 axios 인터셉터로 모든 요청에 자동 Authorization 주입
 - useAuth.ts에서 zustand와 localStorage 동기화, 인증 없는 접근 차단(redirect)
-
-### Troubleshooting & Problem Solving (트러블슈팅/문제 해결)
-- **문제:** optimistic UI 적용 후 승인→대기 전환 시, API 응답보다 UI 반영이 빨라 race condition 발생
-- **원인:** mutation 중 상태 전환이 중첩될 때, 이전 요청의 응답이 마지막으로 UI를 덮어씀
-- **해결:** React Query `onMutate`에서 기존 쿼리 cancel → context에 이전 데이터 저장 → 실패 시 rollback, 성공 시 invalidate
-- **결과:** 중복 요청에도 UI와 데이터 싱크 안정성 확보
-- **추가:**
-  - 백엔드 인증 미들웨어에서 토큰 없을 시 401, 만료/위조시 403 반환
-  - 프론트 axios 인터셉터에서 401/403 발생 시 자동 로그아웃/리다이렉트 처리 가능
 
 ### 3.2 사용자 목록/상태 전환
 
