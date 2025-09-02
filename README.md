@@ -40,7 +40,12 @@
 - **UX**: react-hot-toast, framer-motion, 빈 상태/에러/로딩 UI 등
 
 ### 백엔드
-- **Express 5 기반 REST API**: /api/auth (로그인/회원가입), /api/users (목록, 상태변경)
+- **Express 5 기반 REST API**: 
+  - 로그인: `/api/auth/login`
+  - 회원가입: `/api/auth/register`
+  - 사용자 목록: `/api/users`
+  - 사용자 상태변경: `/api/users/[id]/status`
+  - 헬스체크: `/api/health`
 - **JWT 인증 미들웨어**: 모든 API 인증 필요, 유효하지 않은 토큰시 401/403 반환
 - **CORS**: 프론트엔드(3000) 연동용 CORS 옵션 적용
 - **MySQL2**: 실제 DB 연동 (DB 설정은 .env 참고)
@@ -87,6 +92,29 @@ src/
 | 통계/차트        |      ✅      |      ✅      | 최근 7일 현황, 향후 DB 기반 확장 가능 |
 | Role 권한 관리   |      -      |      ✅      | 단일 관리자만 MVP 포함, 향후 확장 |
 | CRUD 전체       |      -      |      ✅      | 상태 기반 워크플로우만 MVP, 전체 CRUD 확장 가능 |
+
+## 배포/운영 환경 변수 설정
+
+- **Vercel(Next.js API 통합 기준):**
+  - 환경변수: `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET` (서버 전용)
+  - 로컬 MySQL은 Vercel에서 접근 불가 → PlanetScale, RDS 등 클라우드 MySQL 사용 필수
+  - (PlanetScale 등 TLS 필요 시) `lib/db.ts`에 ssl: { rejectUnauthorized: true } 추가
+
+- **레거시 Express 서버:**
+  - `/backend/index.js`는 Vercel에서 사용되지 않으므로 `/backend-legacy/`로 이동하거나 삭제 권장
+
+---
+
+## 배포 체크리스트
+
+1. Vercel > Project > Settings → Environment Variables
+   - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET` 추가 → Save
+2. 배포 후 `/api/health`로 헬스체크 (200 OK)
+3. 로그인, 회원가입, 사용자 관리 기능 정상 동작 확인
+4. DB 연결 오류(ECONNREFUSED/ETIMEDOUT 등)는 DB 방화벽/접근권한 문제일 수 있음 (클라우드 DB 필수)
+5. CORS 에러는 구조상 발생하지 않음
+6. 레거시 Express 코드(backend/index.js)는 빌드/배포에 영향 없음 (정리 권장)
+필요 시) `lib/db.ts`에 ssl: { rejectUnauthorized: true } 추가
 
 ## 실행 및 개발 일정 예시
 

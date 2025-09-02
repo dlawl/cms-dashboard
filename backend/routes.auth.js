@@ -36,6 +36,9 @@ router.post('/login', async (req, res) => {
     const user = users[0];
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
+    if (user.status !== 'approved') {
+      return res.status(403).json({ message: 'NOT_APPROVED', user: { id: user.id, email: user.email, status: user.status } });
+    }
     const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role, status: user.status } });
   } catch (e) {

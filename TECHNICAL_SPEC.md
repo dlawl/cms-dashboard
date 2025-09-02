@@ -233,12 +233,18 @@ useQuery(['users', filter], fetchUsers);
 ## 📚 보안/실무 팁 및 UX 피드백 부록
 
 ### 1. 인증 방식별 장단점
-- **localStorage 기반 인증**
-  - 장점: 구현이 간단, 클라이언트에서 쉽게 접근/관리
-  - 단점: XSS 공격에 취약(자바스크립트로 접근 가능), SSR 환경에서 사용 불가
-- **httpOnly 쿠키 기반 인증**
-  - 장점: 자바스크립트로 접근 불가(XSS 방어), SSR/CSR 모두에서 인증 정보 활용 가능, 실무에서 권장
-  - 단점: CSRF 공격 대비 필요(실무에서는 SameSite=Strict, CSRF 토큰 등 적용)
+- **백엔드(Render/Railway/Fly.io 등)**
+  - 환경변수 `FRONTEND_ORIGIN`에 프론트 배포 도메인 추가(여러개 콤마 구분)
+  - 예시: `FRONTEND_ORIGIN=https://cms-dashboard-blue.vercel.app,http://localhost:3000`
+  - CORS 차단/허용 도메인 관리에 주의
+
+- **실제 배포시**
+  - 프론트: Vercel 대시보드에서 환경변수 추가
+    - 예시: `NEXT_PUBLIC_API_BASE_URL=https://your-api.example.com/api`
+    - 실제 도메인: https://cms-dashboard-blue.vercel.app
+  - 백엔드: Render/Fly.io 등 환경변수 관리 메뉴에서 추가
+    - 예시: `FRONTEND_ORIGIN=https://cms-dashboard-blue.vercel.app,http://localhost:3000`
+  - 로컬 개발은 .env.local, backend/.env 등에서 관리
 
 ### 2. XSS(XSS: Cross-Site Scripting) 대응
 - 인증 토큰은 localStorage보다 httpOnly 쿠키에 저장하는 것이 안전함

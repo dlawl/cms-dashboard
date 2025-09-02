@@ -61,7 +61,7 @@ router.patch('/:id/status', requireApproved, requireAdmin, async (req, res) => {
     return res.status(400).json({ message: '유효하지 않은 상태값입니다.' });
   }
   try {
-    const [result] = await db.query('UPDATE users SET status = ? WHERE id = ?', [status, id]);
+    const [result] = await db.query('UPDATE users SET status = ?, status_change_date = NOW() WHERE id = ?', [status, id]);
     if (result.affectedRows === 0) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     res.json({ message: '상태 변경 성공' });
   } catch (e) {

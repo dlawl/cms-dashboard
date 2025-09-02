@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     role ENUM('admin','manager','user') DEFAULT 'user',
     status ENUM('approved','rejected','pending') DEFAULT 'pending',
+    status_change_date TIMESTAMP NULL DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

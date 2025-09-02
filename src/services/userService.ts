@@ -10,10 +10,8 @@ export interface User {
   statusChangeDate?: string;
 }
 
-const API_URL = "http://localhost:4000/api";
-
 // axios 인스턴스 생성: 매 요청마다 토큰 자동 주입
-const api = axios.create({ baseURL: API_URL });
+const api = axios.create({ baseURL: '/api' });
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("token");
