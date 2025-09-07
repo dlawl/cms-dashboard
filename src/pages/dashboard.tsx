@@ -25,11 +25,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
   try {
-    // API 서버에서 토큰 검증 및 role/status 조회 (id 추출 X)
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    const { data: user } = await axios.get(`${baseUrl}/api/auth/me`, {
+    const proto = (context.req.headers['x-forwarded-proto'] as string) || 'https';
+    const host  = context.req.headers.host;
+    const origin = `${proto}://${host}`;
+    
+    const { data: user } = await axios.get(`${origin}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    
     if (user.status !== 'approved') {
       return {
         redirect: { destination: '/login', permanent: false },

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Head from "next/head";
 import { useAuth } from "../hooks/useAuth";
 import { useRouter } from "next/router";
+import { apiFetch } from "../lib/api"; 
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -24,35 +25,34 @@ export default function LoginPage() {
     }
     setError("");
     // 실제 로그인 요청 및 토큰 저장
-    fetch('/api/auth/login', {
+    apiFetch('/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || '로그인 실패');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.user && data.user.status !== "approved") {
-          setError("계정이 승인되지 않았습니다. 관리자에게 문의하세요.");
-          return;
-        }
-        if (data.token) {
-          localStorage.setItem('token', data.token); // JWT 토큰 저장
-          // 쿠키에도 토큰 저장 (SSR 인증용)
-          document.cookie = `token=${data.token}; path=/;`;
-          login(); // 기존 인증 상태 갱신 및 이동
-        } else {
-          throw new Error('토큰이 없습니다.');
-        }
-      })
-      .catch((err) => {
-        setError(err.message || '로그인 실패');
-      });
+         })
+         .then(async (res) => {
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || '로그인 실패');
+      }
+      return res.json();
+         })
+         .then((data) => {
+      if (data.user && data.user.status !== "approved") {
+        setError("계정이 승인되지 않았습니다. 관리자에게 문의하세요.");
+        return;
+      }
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        document.cookie = `token=${data.token}; path=/;`;
+        login();
+      } else {
+        throw new Error('토큰이 없습니다.');
+      }
+         })
+         .catch((err) => {
+      setError(err.message || '로그인 실패');
+         });
   };
 
   return (
