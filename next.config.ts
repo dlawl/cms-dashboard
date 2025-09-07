@@ -1,3 +1,4 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
 const API_BASE = process.env.API_BASE_URL;
