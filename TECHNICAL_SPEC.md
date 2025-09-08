@@ -6,6 +6,165 @@
 - JWT 인증, 상태 관리, 비동기 처리, UX 피드백 등 프론트/백엔드 통합 역량 증명
 - 구조 분리로 추후 Role/CRUD/통계 확장성 확보
 
+---
+
+## 2. 시스템 아키텍처 및 폴더 구조
+
+### 전체 구조
+
+```
+backend/
+  index.js            # Express 서버 진입점, DB pool 관리, CORS, API route 연결
+  routes.auth.js      # 회원가입/로그인/JWT 인증/내정보 API
+  routes.users.js     # 사용자 목록, 상태변경(승인/반려/대기) API
+  schema.sql          # DB 테이블 예시
+
+src/
+  pages/              # Next.js 라우트(login, dashboard 등)
+  components/         # UI 컴포넌트(UserCard, StatusBadge, Stats 등)
+  services/           # API 통신(userService, statsService 등)
+  store/              # Zustand 인증/역할 상태 관리
+  hooks/              # useAuth 등 커스텀 훅
+  lib/                # JWT, DB util 등
+```
+
+### 아키텍처 다이어그램
+
+```mermaid
+graph LR
+  LoginPage --> AuthState
+  AuthState --> Dashboard
+  Dashboard -->|fetch| UserService
+  UserService -->|users| UserCard
+  UserCard --> StatusBadge
+  Dashboard -->|fetch| StatsService
+  StatsService -->|stats| StatsSummarySection
+```
+
+---
+
+## 3. 주요 기술 스택 및 도입 배경
+
+- **프론트:** Next.js (pages router), TypeScript, Zustand, React Query, Tailwind CSS, react-hot-toast, framer-motion
+- **백엔드:** Express 5, MySQL2, JWT, bcrypt, dotenv, cors
+- **DB:** MySQL (users 테이블)
+- **상태/인증:** JWT + localStorage + axios 인터셉터 (userService.ts), zustand store
+- **배포:** Vercel(프론트), 자체 서버/클라우드(백엔드)
+
+### 기술 선택 근거
+- **React Query + Zustand 병행:** 서버 동기화 데이터(사용자 목록)는 React Query, 인증/필터 등 앱 전역 UI 상태는 Zustand로 분리 관리. 확장성과 유지보수성 강화.
+- **pages router:** SSR/SSG 필요성 낮고, MVP 단계에서 라우팅 구조가 단순해 pages router 선택.
+- **컴포넌트/서비스 레이어 분리:** 추후 기능 추가(통계, 권한, 알림 등) 시 독립적 확장 가능하도록 설계.
+
+---
+
+## 4. 인증/상태/통계 처리 상세
+
+### 4.1 인증 및 권한
+- **JWT 토큰**: 로그인 성공 시 발급, localStorage에 저장, axios 인터셉터에서 자동 주입
+- **SSR 환경(Next.js getServerSideProps)**: 쿠키 기반 인증 검사(로그인/승인된 사용자만 대시보드 접근)
+- **Zustand store**: 인증 여부, 역할(role) 등 전역 상태 관리
+
+### 4.2 사용자 상태 관리 (승인/반려/대기)
+- **UserCard 컴포넌트**: 승인/반려/대기 버튼, 상태별 disabled 처리, Tailwind `disabled:opacity-40`로 시각적 피드백
+- **Optimistic UI**: 상태 변경 시 즉시 UI 반영, 실패 시 롤백(React Query onMutate/onError)
+- **중복 요청 방지**: actionLoading state로 mutation 중복 차단
+
+### 4.3 통계/차트 처리
+- **StatsSummarySection**: 최근 7일간 사용자 상태변경/게시글 현황을 카드+차트로 시각화
+- **mock 데이터**: 실제 DB 연동 전 임시 사용, 추후 API/DB 연동 확장 가능
+- **StatsCard/StatsChart**: recharts, useMemo로 최적화
+
+---
+
+## 5. UX/코드 품질 개선점
+
+- **로딩/에러/빈 상태 UI**: 일관된 UX 제공, 사용자 신뢰도 향상
+- **react-hot-toast**: 상태 변경/실패/에러 등 즉각적 피드백
+- **framer-motion**: 컴포넌트 진입/전환 애니메이션, UX 자연스러움 강화
+- **에러 처리**: 401/403/500 등 상황별 명확한 메시지, 자동 로그아웃/리다이렉트
+- **코드 분리/재사용성**: 서비스/컴포넌트/상태/훅/유틸 분리, 유지보수 용이
+
+---
+
+## 6. 실전 코드 예시/패턴
+
+### (1) React Query Optimistic UI
+```typescript
+const mutation = useMutation(updateUserStatus, {
+  onMutate: async (newStatus) => {
+    await queryClient.cancelQueries(['users']);
+    const prevUsers = queryClient.getQueryData(['users']);
+    queryClient.setQueryData(['users'], (old: User[]) =>
+      old.map(u => u.id === newStatus.id ? { ...u, status: newStatus.status } : u)
+    );
+    return { prevUsers };
+  },
+  onError: (err, newStatus, context) => {
+    queryClient.setQueryData(['users'], context.prevUsers);
+  },
+  onSettled: () => {
+    queryClient.invalidateQueries(['users']);
+  },
+});
+```
+
+### (2) Zustand Store
+```typescript
+export const useAuthStore = create<AuthState>((set) => ({
+  authenticated: false,
+  setAuthenticated: (auth: boolean) => set({ authenticated: auth }),
+  role: 'admin',
+  setRole: (role: UserRole) => set({ role }),
+}));
+```
+
+### (3) axios 인터셉터 (userService.ts)
+```typescript
+const api = axios.create({ baseURL: '/api' });
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers["Authorization"] = `Bearer ${token}`;
+  return config;
+});
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login?expired=1";
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+### (4) UserCard - Tailwind disabled:opacity-40
+```tsx
+<button
+  className="... disabled:opacity-40 ..."
+  disabled={user.status === "approved" || actionLoading}
+>
+  승인
+</button>
+```
+
+---
+
+## 7. 보안/운영/배포 참고
+
+- **JWT 시크릿, DB 정보 등 환경변수로 관리**
+- **CORS**: FRONTEND_ORIGIN 환경변수로 여러 도메인 허용
+- **Vercel/클라우드 배포**: 환경변수 세팅, DB 접근 권한 주의
+- **XSS/CSRF 대응**: React 기본 escape, 인증 토큰 httpOnly 권장
+
+---
+
+## 8. 향후 확장/고려사항
+
+- 통계/차트 실시간 DB 연동, Role 기반 관리자 권한, 전체 CRUD, 알림/이벤트 로그, 고급 검색/정렬/필터 등
+- SSR/CSR/UX/보안 상세 회고 및 개선점은 별도 문서에서 추가 관리
+
 ## 2. 시스템 아키텍처
 
 - **프론트엔드**: Next.js (pages router), TypeScript, Zustand(인증/필터 등 전역), React Query(서버 상태)

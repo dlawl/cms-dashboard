@@ -2,21 +2,127 @@
 
 ## 프로젝트 개요
 
-실제 MySQL DB와 연동되는 **Express + Next.js 기반 관리자 대시보드**입니다. 
-- **JWT 인증, 사용자 승인/반려, 상태 필터, 통계 대시보드** 등 실무형 기능 제공
-- **Express 5 + MySQL2** RESTful API, **JWT 인증/미들웨어** 적용
-- **Next.js (pages router) + React Query + Zustand**로 상태/데이터 관리
+실제 MySQL DB와 연동되는 **Express + Next.js 기반 관리자 대시보드**입니다.
+
+- **배포 주소:** [https://cms-dashboard-blue.vercel.app/](https://cms-dashboard-blue.vercel.app/)
+- **총 관리자 계정:** admin@naver.com / 1234
+
+- **JWT 인증, 사용자 승인/반려/대기, 상태 필터, 통계 대시보드** 등 실무형 관리자 기능 제공
+- **Express 5 + MySQL2** 기반 RESTful API, **JWT 인증/미들웨어** 적용
+- **Next.js (pages router) + React Query + Zustand**로 인증/상태/데이터 관리
 - **Tailwind CSS** 기반 반응형 UI, UX 개선(토스트, 애니메이션 등)
 - **실제 DB 연동** (mock 데이터는 통계/차트에만 임시 사용)
 - 구조 분리로 추후 Role 관리, 전체 CRUD, 고급 검색 등 확장 가능
 
-## 배포 주소
+---
 
-- [배포 URL](https://your-vercel-url.vercel.app)
+## 주요 폴더 구조
 
-### 테스트 계정
-- ID: admin@naver.com
-- PW: 1234
+```
+backend/
+├── index.js           # Express 서버 진입점
+├── routes.auth.js     # 인증/회원가입 API
+├── routes.users.js    # 사용자 목록/상태변경 API
+├── schema.sql         # DB 스키마 예시
+
+src/
+├── pages/             # 라우트(login, dashboard 등)
+├── components/        # UI 컴포넌트(UserCard, FilterBar, Stats 등)
+├── services/          # API 통신(userService, statsService 등)
+├── store/             # Zustand 인증/역할 상태 관리
+├── hooks/             # useAuth 등 커스텀 훅
+```
+
+---
+
+## 실행 방법
+
+1. **백엔드 실행**
+   - `cd backend && npm install && npm start`
+   - `.env`에 MySQL 연결 정보 필요 (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, JWT_SECRET 등)
+2. **프론트엔드 실행**
+   - 루트에서 `npm install && npm run dev`
+   - 기본 포트: 3000 (API는 4000)
+
+
+---
+
+## 기술 스택
+
+| 분류         | 기술/라이브러리                | 도입 이유                                  |
+| ------------ | ------------------------------ | ------------------------------------------ |
+| 프론트엔드   | Next.js (pages router), TypeScript | SSR/CSR, 타입 안정성, 빠른 개발           |
+| 상태 관리    | Zustand, React Query           | 인증/필터 등 전역 상태, 서버 상태 관리      |
+| 스타일링     | Tailwind CSS, shadcn/ui        | 반응형 UI, 실무형 컴포넌트                 |
+| 알림/UX      | react-hot-toast, framer-motion | UX 피드백, 애니메이션                      |
+| 백엔드       | Express 5, MySQL2, JWT, bcrypt | REST API, DB 연동, 인증/암호화             |
+| 기타         | dotenv, cors, nodemon          | 환경변수 관리, CORS, 개발 편의             |
+
+---
+
+## 주요 기능 요약
+
+- **로그인/로그아웃**: JWT 토큰 localStorage 저장, axios 인터셉터로 자동 Authorization 주입
+- **사용자 목록/상태 관리**: React Query로 동기화, optimistic UI, 실패 시 롤백, mutation 중복 방지
+- **승인/반려/대기**: 버튼별 상태/로딩/중복 방지, Tailwind `disabled:opacity-40` 활용
+- **필터/검색**: 상태별 필터(FilterBar 컴포넌트)
+- **통계/차트**: 최근 7일간 상태변경·게시글 현황을 카드/차트로 시각화 (StatsCard, StatsChart 등)
+- **UX**: react-hot-toast, framer-motion, 빈 상태/에러/로딩 UI 등
+
+---
+
+## API 주요 엔드포인트
+
+- **Express 5 기반 REST API**:
+  - 로그인: `/api/auth/login`
+  - 회원가입: `/api/auth/register`
+  - 사용자 목록: `/api/users`
+  - 사용자 상태변경: `/api/users/[id]/status`
+  - 헬스체크: `/api/health`
+- **JWT 인증 미들웨어**: 모든 API 인증 필요, 토큰 만료/오류 시 401/403 반환
+- **CORS**: 프론트엔드(3000) 연동용 CORS 옵션 적용
+- **MySQL2**: 실제 DB 연동 (DB 설정은 .env 참고)
+- **에러 처리**: 401/403/500 등 상황별 명확한 메시지 반환
+
+---
+
+## 배포/운영 환경 변수 설정
+
+- **Vercel(Next.js API 통합 기준):**
+  - 환경변수: `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET` (서버 전용)
+  - 로컬 MySQL은 Vercel에서 접근 불가 → PlanetScale, RDS 등 클라우드 MySQL 필요
+  - (PlanetScale 등 TLS 필요 시) `lib/db.ts`에 ssl: { rejectUnauthorized: true } 추가
+
+---
+
+## 실전/개발 일정 예시
+
+| 날짜 | 작업 내용 | 체크포인트 |
+| --- | --- | --- |
+| D1 | 프로젝트 초기 세팅/폴더 구조 | GitHub, Tailwind, Express, MySQL 연동 |
+| D2 | 로그인/회원가입 API, JWT 인증 | bcrypt, JWT, DB 연동 |
+| D3 | 프론트엔드 로그인 연동, Zustand | localStorage + zustand |
+| D4 | 사용자 목록/상태변경 API, 대시보드 | React Query, optimistic UI |
+| D5 | 필터/통계/UX 디테일 | Toast, 애니메이션, 차트 등 |
+| D6 | 에러처리, 반응형 대응 | 로딩/에러 UI, media query |
+| D7 | README/문서화/배포 | 문서화, 배포 완료 |
+
+---
+
+## 향후 확장 기능 체크리스트
+
+- [ ] 통계/차트 실시간 DB 연동
+- [ ] Role 기반 관리자 권한(다중 역할)
+- [ ] 전체 CRUD(게시글/파일 등)
+- [ ] 고급 검색/정렬/필터
+- [ ] 알림/이벤트 로그 등
+
+---
+
+## 참고/기타
+- 보안/SSR/CSR/UX 상세 회고는 TECHNICAL_SPEC.md 참고
+- 주요 코드 예시/패턴은 TECHNICAL_SPEC.md 하단 참고
+
 
 ## 기술 스택
 
