@@ -116,18 +116,6 @@ src/
 5. **CORS 확인:** Vercel의 Next API 통합 사용 시 동일 출처로 CORS 이슈가 거의 없습니다. 로컬/레거시 Express 분리 운영 시에는 허용 도메인(예: http://localhost:3000)을 CORS 설정에 추가하세요.
 6. 레거시 Express 코드(`backend/index.js`)는 빌드/배포에 영향 없음(정리 권장)
 
-
-## 실행 및 개발 일정
-| 날짜 | 작업 내용 | 체크포인트 |
-| --- | --- | --- |
-| D1 | 프로젝트 초기 세팅/폴더 구조 | GitHub, Tailwind, Express, MySQL 연동 |
-| D2 | 로그인/회원가입 API, JWT 인증 | bcrypt, JWT, DB 연동 |
-| D3 | 프론트엔드 로그인 연동, Zustand | localStorage + Zustand |
-| D4 | 사용자 목록/상태변경 API, 대시보드 | React Query, Optimistic UI |
-| D5 | 필터/통계/UX 디테일 | Toast, 애니메이션, 차트 등 |
-| D6 | 에러처리, 반응형 대응 | 로딩/에러 UI, media query |
-| D7 | README/문서화/배포 | 문서화, 배포 완료 |
-
 ## 🧪 트러블슈팅/회고
 
 ### [2025-08] 인증 상태 전역 관리 구조 개선 (zustand 도입)
