@@ -120,19 +120,8 @@ src/
 ---
 
 ## 참고/기타
-- 보안/SSR/CSR/UX 상세 회고는 TECHNICAL_SPEC.md 참고
-- 주요 코드 예시/패턴은 TECHNICAL_SPEC.md 하단 참고
+- 보안/SSR/CSR/UX 상세 회고, 주요 코드 예시/패턴은 TECHNICAL_SPEC.md 참고
 
-
-## 기술 스택
-
-| 분야          | 기술/라이브러리          | 도입 이유                                  |
-| ------------- | ----------------------- | ------------------------------------------ |
-| 프론트엔드    | Next.js (pages router), TypeScript | SSR/CSR, 타입 안정성, 빠른 개발           |
-| 상태 관리      | Zustand, React Query     | 인증/필터 등 전역 상태, 서버 상태 관리      |
-| 스타일링       | Tailwind CSS, shadcn/ui  | 반응형 UI, 실무형 컴포넌트                 |
-| 알림/UX        | react-hot-toast, framer-motion | UX 피드백, 애니메이션                    |
-| 백엔드        | Express 5, MySQL2, JWT, bcrypt | REST API, DB 연동, 인증/암호화           |
 | 기타          | dotenv, cors, nodemon    | 환경변수 관리, CORS, 개발 편의             |
 
 ## 주요 기능 요약

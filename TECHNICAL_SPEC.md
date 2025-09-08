@@ -10,24 +10,10 @@
 
 ## 2. 시스템 아키텍처 및 폴더 구조
 
-### 전체 구조
-
-```
-backend/
-  index.js            # Express 서버 진입점, DB pool 관리, CORS, API route 연결
-  routes.auth.js      # 회원가입/로그인/JWT 인증/내정보 API
-  routes.users.js     # 사용자 목록, 상태변경(승인/반려/대기) API
-  schema.sql          # DB 테이블 예시
-
-src/
-  pages/              # Next.js 라우트(login, dashboard 등)
-  components/         # UI 컴포넌트(UserCard, StatusBadge, Stats 등)
-  services/           # API 통신(userService, statsService 등)
-  store/              # Zustand 인증/역할 상태 관리
-  hooks/              # useAuth 등 커스텀 훅
-  lib/                # JWT, DB util 등
-```
-
+### 전체 구조(요약)
+- backend/: Express 서버, 인증/유저 API, DB 연동
+- src/: Next.js 라우트, UI 컴포넌트, API 서비스, 상태 관리, 커스텀 훅 등
+※ 상세 구조/코드 예시는 README.md 및 실제 코드 참고
 ### 아키텍처 다이어그램
 
 ```mermaid
@@ -41,6 +27,25 @@ graph LR
   StatsService -->|stats| StatsSummarySection
 ```
 
+### 주요 폴더 구조
+```
+backend/
+├── index.js           # Express 서버 진입점
+├── routes.auth.js     # 인증/회원가입 API
+├── routes.users.js    # 사용자 목록/상태변경 API
+├── package.json       # 백엔드 의존성
+├── schema.sql         # DB 스키마 예시
+└── ...
+
+src/
+├── pages/             # 라우트(login, dashboard 등)
+├── components/        # UI 컴포넌트(UserCard, FilterBar, Stats 등)
+├── services/          # API 통신(userService, statsService 등)
+├── store/             # Zustand 인증/역할 상태 관리
+├── hooks/             # useAuth 등 커스텀 훅
+└── ...
+```
+
 ---
 
 ## 3. 주요 기술 스택 및 도입 배경
@@ -49,7 +54,6 @@ graph LR
 - **백엔드:** Express 5, MySQL2, JWT, bcrypt, dotenv, cors
 - **DB:** MySQL (users 테이블)
 - **상태/인증:** JWT + localStorage + axios 인터셉터 (userService.ts), zustand store
-- **배포:** Vercel(프론트), 자체 서버/클라우드(백엔드)
 
 ### 기술 선택 근거
 - **React Query + Zustand 병행:** 서버 동기화 데이터(사용자 목록)는 React Query, 인증/필터 등 앱 전역 UI 상태는 Zustand로 분리 관리. 확장성과 유지보수성 강화.
